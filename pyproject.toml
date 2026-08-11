@@ -1,0 +1,25 @@
+[project]
+name = "ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Julien Ribon", email = "julien@ribon.ch" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "accelerate>=1.14.0",
+    "lmstudio>=1.5.0",
+    "ollama>=0.6.2",
+    "pydantic-ai>=2.27.1",
+    "requests>=2.34.2",
+    "torch>=2.13.0",
+    "transformers>=5.15.0",
+]
+
+[project.scripts]
+ai = "ai:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
