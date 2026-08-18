@@ -5,12 +5,12 @@ import sounddevice as sd
 from faster_whisper import WhisperModel
 from piper import PiperVoice
 
-from ai.agent import lms_agent
+from ai.agent.lms_agent import LMSAgent
 from ai.agent.ollama_agent import OllamaAgent
 
 
 AGENT_NAME = "Alix"  # Mot-clé pour activer l'assistant 
-BYE_KEYWORDS = ["au revoir", "à bientôt", "ce sera tout", "c'est tout", "merci"]  # Mots-clés pour terminer la conversation
+BYE_KEYWORDS = ["au revoir", "à bientôt", "ce sera tout", "c'est tout pour", "merci", "on va arrêter"]  # Mots-clés pour terminer la conversation
 
 # SPEECH-TO-TEXT
 # Initialize the Whisper model for speech-to-text
@@ -26,12 +26,21 @@ voice = PiperVoice.load(VOICE_PATH)
 
 # Initialize the Ollama's LLM
 SYSTEM_PROMPT = (
-    f"Tu es {AGENT_NAME}, une assistante vocal francophone. "
+    f"Tu es {AGENT_NAME}, mon assistante. "
     "Sois concis, clair et naturel dans tes réponses."
     "Répond au maximum avec 3 phrases."
-    "Répond avec des phrases, mais pas de code ni de formats spéciaux."
+    "Répond avec des phrases simples, pas de code ni de formats spéciaux, ni de caractères venant d'autres langues que le français."
+    #"A part au début de la conversation, évite de répérer que tu es là pour aider."
 )
-agent = OllamaAgent(system_prompt=SYSTEM_PROMPT) # model_name='qwen3.8:27b-mlx'
+
+#agent = OllamaAgent(system_prompt=SYSTEM_PROMPT) # model_name='qwen3.8:27b-mlx'
+agent = LMSAgent(
+    model_name='mistral-small-4-119b-2603',
+    system_prompt=SYSTEM_PROMPT)
+
+# Send a greeting message to the agent to initialize it
+response = agent.ask(f"Bonjour {AGENT_NAME}")
+print(response)
 
 
 def record_audio(duration, sample_rate):
@@ -53,6 +62,7 @@ def listen():
 
     if text: 
         print(f"User: {text}") 
+        #detect_skill(text)
 
     return text
 
@@ -75,6 +85,14 @@ def speak(response):
     sd.play(audio, samplerate=chunk.sample_rate)
     sd.wait()
 
+'''
+def detect_skill(text):
+    text = text.lower().replace(" ", "").replace("hashtag", "#")
+    if '#' in text:
+        print(f'Skill detected: {text}')
+'''
+
+
 
 def main():
     print("Recording...")
@@ -85,7 +103,7 @@ def main():
         if AGENT_NAME.lower() in text.lower():
             print("Agent's name detected. Activating...")
 
-            response = agent.ask(f"Bonjour {AGENT_NAME}!")
+            response = agent.ask(text)
             speak(response)
 
             while not any(w in text.lower() for w in BYE_KEYWORDS):
